@@ -115,30 +115,24 @@ def openBatched(filePaths, featuresDataFrame, startIdx=0, batchSize=25):
     """
         
     numImages = len(filePaths)
-    if batchSize > numImages: #if batchSize is larger. than numImages, reduce to open all at once
+    if batchSize > numImages: #if batchSize is larger than numImages, reduce to open all at once
         batchSize = numImages
     
     row, col = fits_open(filePaths[0])[0].data.shape
     imageArray = np.zeros((numImages, row, col, 3)) #3 for diff, srch, tmpl triplet
-    # infoArray = np.zeros((numImages, 2), dtype=int)
     infoList = []
-    
-    if (numImages/batchSize).is_integer():
-        iterNum = numImages
-    else:
-        iterNum = numImages//batchSize + batchSize
-        
-    for i in tqdm.tqdm(range(0, iterNum, batchSize)):
+
+    for i in tqdm.tqdm(range(0, numImages, batchSize)):
         if i + batchSize > numImages:
             batchSize = numImages - i
-            print(f'Corrected batchSize on interation #{i}')
+            print(f'Corrected batchSize at image #{i}')
             
         batchIm, batchInfo = batchReadImages(filePaths, featuresDataFrame, i, batchSize)
         imageArray[i:i+batchSize] = batchIm
         # infoArray[i:i+batchSize] = batchInfo
         infoList.append(batchInfo)
         
-    return imageArray, np.array(infoList).reshape(numImages,2)
+    return imageArray, np.concatenate(infoList)
 
 def normaliseImage(image, normType='standard', sigBound=3):
     """
