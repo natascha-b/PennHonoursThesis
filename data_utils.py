@@ -23,7 +23,7 @@ def getFilepaths(rootDir, extension='.fits', prefix='diff'):
             if filename.endswith(extension) and filename.startswith(prefix):
                 path = os.path.join(dirpath, filename)
                 filePaths.append(path)
-    print(f'# of files: {len(filePaths)}')
+    print(f'# of files: {3 * len(filePaths)}')  # *3 since paths are only to diff images
     return filePaths
 
 def getIDs(filePaths, unique=True):
@@ -158,16 +158,15 @@ def normaliseImage(image, normType='standard', sigBound=3):
         assert normData.min() == 0
         assert normData.max() == 1
     
-    if normType == 'gaussian':  #typically what is used for diff images
+    elif normType == 'gaussian':  #typically what is used for diff images
         #normalises to Gaussian with mean = 0, std = 1
         normData = (image - image.mean(keepdims=True)) / (image.std(keepdims=True))
         
         assert np.isclose(normData.mean(), 0)
         assert np.isclose(normData.std(), 1)
     
-    if normType == 'sigmaBounded': #typically used for tmpl and srch images to maintain extreme values
+    elif normType == 'sigmaBounded': #typically used for tmpl and srch images to maintain extreme values
         #maps values inside sigma bounds onto 0-->1
-        
         maxBound = image.mean(keepdims=True) + sigBound*image.std(keepdims=True)
         minBound = image.mean(keepdims=True) - sigBound*image.std(keepdims=True)
         
@@ -177,6 +176,9 @@ def normaliseImage(image, normType='standard', sigBound=3):
         
         assert normData[maskInfo.mask == False].min() == 0
         assert normData[maskInfo.mask == False].max() == 1
+    
+    else:
+        raise ValueError("normType must be 'standard', 'gaussian', or 'sigmaBounded'")
         
     return normData
 
