@@ -7,7 +7,7 @@ featureinfoPath = 'autoscanFiles/autoscan_features.3.csv'
 stampsDirectory = 'stampDirectory'
 
 outputImageFile = 'imageArray.h5' #must be .h5 file
-outputLabelFile = 'labels.pk' #must be .pk file
+outputLabelFile = 'labels.pkl' #must be .pkl file
 
 #reading in images
 featuredf = pd.read_csv(featureinfoPath, skiprows=6)

@@ -184,26 +184,37 @@ def normaliseImage(image, normType='standard', sigBound=3):
 
 def randomCrop(image, outputSize = (25,25)):
     """
-    Randomly crops image to desired output size, defaults to 25*25 pixels.
+    Randomly crops grouped images to desired output size, defaults to 25*25 pixels.
     
     Inputs:
-        image: input image as np.array to be cropped. Can be any shape. 
+        image: input image(s) as np.array to be cropped. must be of the shape (row, col, x) where x can == 1 if 
+               necessary
         outputSize: array indicating shape of desired (2D) output, e.g. np.array([25,25]) OR (25,25) (either works). 
-                    Can be any shape. 
+               Can be any shape. 
                     
     Returns:
-        Outputs cropped image in new size
+        Outputs cropped image(s) in new size, in same format as original.
     """
+    
+    if len(image.shape) != 3:
+        raise ValueError('Input image must be of shape (row, col, x), where x is depth of stacked images')
     
     #subtracting the output size makes sure that the mask doesn't go over the right/bottom edges
     topLeftX = np.random.choice(np.arange(image.shape[0] - outputSize[0]), 1)[0]
     topLeftY = np.random.choice(np.arange(image.shape[1] - outputSize[1]), 1)[0]
     
+    outputImage = np.zeros((outputSize[0], outputSize[1], image.shape[2]))
+    
     if topLeftX+outputSize[0] > image.shape[0] or topLeftY+outputSize[1] > image.shape[1]:
         raise RuntimeError('randomImageCropping(): crop exceeds edges')
-        
-    outputImage = image[topLeftX:topLeftX+outputSize[0], topLeftY:topLeftY+outputSize[1]]
+    
+    for i in range(image.shape[2]):
+        outputImage[:,:,i] = image[:,:,i][topLeftX:topLeftX+outputSize[0], topLeftY:topLeftY+outputSize[1]]
+    
     return outputImage
+    
+#     outputImage = image[topLeftX:topLeftX+outputSize[0], topLeftY:topLeftY+outputSize[1]]
+#     return outputImage
 
 def hstackImages(imageArray):
     """
