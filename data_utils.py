@@ -182,12 +182,45 @@ def normaliseImage(image, normType='standard', sigBound=3):
         
     return normData
 
+def centredCrop(image, outputSize = (25,25)):
+    """
+    Crops grouped images to desired output size, keeping the image centered the same. Defaults to 25*25 pixels. 
+    
+    Inputs:
+        image: input image(s) as np.array to be cropped. must be of the shape (row, col, x) where x can == 1 if 
+               necessary
+        outputSize: array indicating shape of desired (2D) output, e.g. np.array([25,25]) OR (25,25) (either works). 
+               Can be any shape. 
+               
+    Returns:
+        Cropped image(s) in new size, in otherwise same format as original.
+    """
+    
+    if len(image.shape) != 3:
+        raise ValueError('Input image must be of shape (row, col, x), where x is depth of stacked images')
+    
+    colPixels = image.shape[0] - outputSize[0] #num of pixels to exclude
+    topLeftX = colPixels // 2 #floor division means if it is not even, the 'extra' pixel will be on RHS of cropped img
+    
+    rowPixels = image.shape[1] - outputSize[1]
+    topLeftY = rowPixels // 2
+
+    outputImage = np.zeros((outputSize[0], outputSize[1], image.shape[2]))
+    
+    if topLeftX+outputSize[0] > image.shape[0] or topLeftY+outputSize[1] > image.shape[1]:
+        raise RuntimeError('randomImageCropping(): crop exceeds edges')
+        
+    for i in range(image.shape[2]):
+        outputImage[:,:,i] = image[:,:,i][topLeftX:topLeftX+outputSize[0], topLeftY:topLeftY+outputSize[1]]
+        
+    return outputImage
+
 def randomCrop(image, outputSize = (25,25)):
     """
     Randomly crops grouped images to desired output size, defaults to 25*25 pixels.
     
     Inputs:
-        image: input image(s) as np.array to be cropped. must be of the shape (row, col, x) where x can == 1 if 
+        image: input image(s) as np.array to be cropped. must be of the shape (col, row, x) where x can == 1 if 
                necessary
         outputSize: array indicating shape of desired (2D) output, e.g. np.array([25,25]) OR (25,25) (either works). 
                Can be any shape. 
@@ -197,8 +230,8 @@ def randomCrop(image, outputSize = (25,25)):
     """
     
     if len(image.shape) != 3:
-        raise ValueError('Input image must be of shape (row, col, x), where x is depth of stacked images')
-    
+        raise ValueError('Input image must be of shape (col, row, x), where x is depth of stacked images')
+            
     #subtracting the output size makes sure that the mask doesn't go over the right/bottom edges
     topLeftX = np.random.choice(np.arange(image.shape[0] - outputSize[0]), 1)[0]
     topLeftY = np.random.choice(np.arange(image.shape[1] - outputSize[1]), 1)[0]
